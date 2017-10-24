@@ -3,8 +3,8 @@ package ru.javawebinar.topjava.model;
 import java.time.LocalDateTime;
 
 /**
- * GKislin
- * 11.01.2015.
+ * TheTOXIN
+ * 24.10.2017.
  */
 public class UserMealWithExceed {
     private final LocalDateTime dateTime;
