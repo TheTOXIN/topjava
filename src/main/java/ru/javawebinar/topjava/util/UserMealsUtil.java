@@ -29,39 +29,31 @@ public class UserMealsUtil {
     public static List<UserMealWithExceed> getFilteredWithExceeded(List<UserMeal> mealList, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
         List<UserMealWithExceed> mealWithExceedsList = new ArrayList<>();
         List<LocalDate> exceedDateList = new ArrayList<>();
-        boolean isExceed = false;
         int countCalories = 0;
 
-        Collections.sort(mealList, new Comparator<UserMeal>() {
-            @Override
-            public int compare(UserMeal o1, UserMeal o2) {
-                return o1.getDateTime().compareTo(o2.getDateTime());
-            }
-        });
+        mealList.sort(Comparator.comparing(UserMeal::getDateTime));
 
         countCalories += mealList.get(0).getCalories();
 
         for (int i = 1; i < mealList.size(); i++) {
-            UserMeal meal = mealList.get(i - 1);
-            UserMeal mealNext = mealList.get(i);
+            UserMeal mealPrev = mealList.get(i - 1);
+            UserMeal meal = mealList.get(i);
 
-            if (!meal.getDateTime().toLocalDate().equals(mealNext.getDateTime().toLocalDate())) {
+            if (!mealPrev.getDateTime().toLocalDate().equals(meal.getDateTime().toLocalDate())) {
                 countCalories = 0;
             }
 
-            countCalories += mealNext.getCalories();
+            countCalories += meal.getCalories();
 
             if (countCalories > caloriesPerDay) {
-                exceedDateList.add(meal.getDateTime().toLocalDate());
+                exceedDateList.add(mealPrev.getDateTime().toLocalDate());
             }
         }
 
-        for (UserMeal meal : mealList) {
-            if (TimeUtil.isBetween(meal.getDateTime().toLocalTime(), startTime, endTime)) {
-                isExceed = exceedDateList.contains(meal.getDateTime().toLocalDate());
-                mealWithExceedsList.add(new UserMealWithExceed(meal.getDateTime(), meal.getDescription(), meal.getCalories(), isExceed));
-            }
-        }
+        mealList
+                .stream()
+                .filter(meal->TimeUtil.isBetween(meal.getDateTime().toLocalTime(), startTime, endTime))
+                .forEach(meal->mealWithExceedsList.add(new UserMealWithExceed(meal.getDateTime(), meal.getDescription(), meal.getCalories(), exceedDateList.contains(meal.getDateTime().toLocalDate()))));
 
         return mealWithExceedsList;
     }
